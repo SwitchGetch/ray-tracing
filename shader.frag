@@ -3,6 +3,8 @@ out vec4 FragColor;
 
 uniform vec2 u_resolution;
 uniform float u_time;
+uniform vec3 u_cameraPosition;
+uniform vec2 u_cameraAngle;
 
 mat3 rotateX(float angle)
 {
@@ -92,7 +94,7 @@ vec4 castRay(in vec3 ro, in vec3 rd)
 
     vec4 sphereColor = vec4(1.0, 0.0, 0.0, 1.0);
 
-    vec3 light = normalize(vec3(0.0, 0.0, 1.0)) * rotateY(u_time);
+    vec3 light = normalize(vec3(0.0, 0.0, 1.0));
     vec3 n = normalize(cross - ce);
 
     float diffuse = max(0.0, dot(n, -light));
@@ -104,8 +106,8 @@ void main()
 {
     vec2 uv = gl_FragCoord.xy / u_resolution - 0.5;
     
-    vec3 rayOrigin = vec3(0.0);
-    vec3 rayDirection = normalize(vec3(uv, 1.0));
+    vec3 rayOrigin = u_cameraPosition;
+    vec3 rayDirection = normalize(vec3(uv, 1.0)) * rotateX(u_cameraAngle.x) * rotateY(u_cameraAngle.y);
 
     FragColor = castRay(rayOrigin, rayDirection);
 } 
