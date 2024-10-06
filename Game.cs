@@ -32,7 +32,7 @@ public static class Game
     {
         Window.DispatchEvents();
 
-        shader.SetUniform("u_totalTime", TotalTime);
+        shader.SetUniform("u_time", TotalTime);
 
         Window.SetTitle("FPS: " + 1 / DeltaTime);
     }
