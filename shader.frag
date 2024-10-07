@@ -30,7 +30,7 @@ mat3 rotateZ(float angle)
     return mat3(c, s, 0.0, -s, c, 0.0, 0.0, 0.0, 1.0);
 }
 
-bool sphereIntersect(in vec3 ro, in vec3 rd, in vec3 ce, float ra, out vec3 cross)
+float sphereIntersect(in vec3 ro, in vec3 rd, in vec3 ce, float ra)
 {
     vec3 v = ro - ce;
     float a = dot(rd, rd);
@@ -46,69 +46,75 @@ bool sphereIntersect(in vec3 ro, in vec3 rd, in vec3 ce, float ra, out vec3 cros
         float t1 = (-b - D) / a;
         float t2 = (-b + D) / a;
 
-        if (t1 > 0)
-        {
-            cross = ro + t1 * rd;
-            return true;
-        }
-        else if (t2 > 0)
-        {
-            cross = ro + t2 * rd;
-            return true;
-        }
-        else
-        {
-            cross = vec3(0.0);
-            return false;
-        }
+        if (t1 > 0) return t1;
+        else if (t2 > 0) return t2;
     }
     else if (D == 0)
     {
 	    float t = -b / (2 * a);
 
-        if (t > 0)
-        {
-            cross = ro + t * rd;
-            return true;
-        }
-        else
-        {
-            cross = vec3(0.0);
-            return false;
-        }
+        if (t > 0) return t;
     }
-    else
-    {
-	    cross = vec3(0.0);
-        return false;
-    }
+
+    return 0.0;
 }
 
-bool planeIntersect(in vec3 ro, in vec3 rd, in vec3 po, in vec3 pn)
+float planeIntersect(in vec3 ro, in vec3 rd, in vec3 po, in vec3 pn)
 {
+    float d = dot(rd, pn);
 
+    if (d == 0) return 0.0;
+
+    float t = dot(pn, po - ro) / d;
+
+    if (t > 0) return t;
+
+    return 0.0;
 }
 
 vec4 castRay(in vec3 ro, in vec3 rd)
 {
     vec3 ce = vec3(0.0, 0.0, 5.0);
     float ra = 1.0;
+    vec3 po = vec3(0.0, -1.0, 0.0);
+    vec3 pn = vec3(0.0, 1.0, 0.0);
+
+    float minDistance = 0.0;
+    float tempDistance = 0.0;
+
     vec3 cross = vec3(0.0);
+    vec3 n = vec3(0.0);
+    vec4 objectColor = vec4(0.0, 0.0, 0.0, 1.0);
 
-    if (!sphereIntersect(ro, rd, ce, ra, cross)) return vec4(0.0, 0.0, 0.0, 1.0);
+    tempDistance = sphereIntersect(ro, rd, ce, ra);
+    if (tempDistance > 0.0 && (tempDistance < minDistance || minDistance == 0.0))
+    {
+        minDistance = tempDistance;
+        cross = ro + minDistance * rd;
+        n = normalize(cross - ce);
+        objectColor = vec4(1.0, 0.0, 0.0, 1.0);
+    }
 
-    vec4 sphereColor = vec4(1.0, 0.0, 0.0, 1.0);
+    tempDistance = planeIntersect(ro, rd, po, pn);
+    if (tempDistance > 0.0 && (tempDistance < minDistance || minDistance == 0.0))
+    {
+        minDistance = tempDistance;
+        cross = ro + minDistance * rd;
+        n = pn;
+        objectColor = vec4(0.0, 0.0, 1.0, 1.0);
+    }
 
-    vec3 light = vec3(0.0, 0.0, 1.0) * rotateY(u_time);
-    vec3 n = normalize(cross - ce);
+    if (minDistance <= 0.0) return objectColor;
+
+    vec3 light = normalize(vec3(-1.0, -1.0, 1.0)) * rotateY(u_time);
     vec3 v = normalize(ro - cross);
     vec3 r = reflect(light, n);
 
-    float ambient = 0.25;
+    float ambient = 0.5;
     float diffuse = 0.5 * max(0.0, dot(n, -light));
-    float specular = pow(max(0.0, dot(r, v)), 25.0);
+    float specular = 0.5 * pow(max(0.0, dot(r, v)), 25.0);
 
-    return (ambient + diffuse + specular) * sphereColor;
+    return (ambient + diffuse + specular) * objectColor;
 }
 
 void main()
