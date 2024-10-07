@@ -84,22 +84,31 @@ bool sphereIntersect(in vec3 ro, in vec3 rd, in vec3 ce, float ra, out vec3 cros
     }
 }
 
+bool planeIntersect(in vec3 ro, in vec3 rd, in vec3 po, in vec3 pn)
+{
+
+}
+
 vec4 castRay(in vec3 ro, in vec3 rd)
 {
     vec3 ce = vec3(0.0, 0.0, 5.0);
     float ra = 1.0;
     vec3 cross = vec3(0.0);
 
-    if (!sphereIntersect(ro, rd, ce, ra, cross)) return vec4(vec3(0.0), 1.0);
+    if (!sphereIntersect(ro, rd, ce, ra, cross)) return vec4(0.0, 0.0, 0.0, 1.0);
 
     vec4 sphereColor = vec4(1.0, 0.0, 0.0, 1.0);
 
-    vec3 light = normalize(vec3(0.0, 0.0, 1.0));
+    vec3 light = vec3(0.0, 0.0, 1.0) * rotateY(u_time);
     vec3 n = normalize(cross - ce);
+    vec3 v = normalize(ro - cross);
+    vec3 r = reflect(light, n);
 
-    float diffuse = max(0.0, dot(n, -light));
+    float ambient = 0.25;
+    float diffuse = 0.5 * max(0.0, dot(n, -light));
+    float specular = pow(max(0.0, dot(r, v)), 25.0);
 
-    return diffuse * sphereColor;
+    return (ambient + diffuse + specular) * sphereColor;
 }
 
 void main()

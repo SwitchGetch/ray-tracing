@@ -17,9 +17,9 @@ public static class Vector
 
         switch (Axis)
         {
-            case Axis.X: P = new Vector3f(P.X, P.Y * Cos - P.Z * Sin, P.Y * Sin + P.Z * Cos); break;
-            case Axis.Y: P = new Vector3f(P.X * Cos + P.Z * Sin, P.Y, P.Z * Cos - P.X * Sin); break;
-            case Axis.Z: P = new Vector3f(P.X * Cos - P.Y * Sin, P.X * Sin + P.Y * Cos, P.Z); break;
+            case Axis.X: P = new Vector3f(P.X, P.Y * Cos + P.Z * Sin, P.Z * Cos - P.Y * Sin); break;
+            case Axis.Y: P = new Vector3f(P.X * Cos - P.Z * Sin, P.Y, P.X * Sin + P.Z * Cos); break;
+            case Axis.Z: P = new Vector3f(P.X * Cos + P.Y * Sin, P.Y * Cos - P.X * Sin, P.Z); break;
         }
 
         return P + Relative;
