@@ -15,7 +15,7 @@ public static class MouseMove
 
 public static class Game
 {
-    private static RenderWindow Window = new RenderWindow(new VideoMode(1000, 1000), "");
+    private static RenderWindow Window = new RenderWindow(new VideoMode(1200, 900), "");
     private static Sprite Canvas = new Sprite(new Texture(Window.Size.X, Window.Size.Y));
     private static Camera Camera = new Camera();
 
@@ -26,6 +26,8 @@ public static class Game
     public static Vector2f WindowCenter { get => (Vector2f)Window.Size / 2; }
     public static Vector2f MousePosition { get => (Vector2f)Mouse.GetPosition(Window); }
     public static Color RandomColor { get => new Color((byte)new Random().Next(0, 256), (byte)new Random().Next(0, 256), (byte)new Random().Next(0, 256)); }
+
+    private static bool FreeMouseCursor = false;
 
     private static Shader Shader = new Shader(null, null, "shader.frag");
     private static RenderStates renderStates = new RenderStates(Shader);
@@ -43,6 +45,28 @@ public static class Game
     {
         Window.Closed += (s, e) => Window.Close();
 
+        Window.KeyPressed += (s, e) =>
+        {
+            switch(e.Code)
+            {
+                case Keyboard.Key.LAlt:
+
+                    FreeMouseCursor = !FreeMouseCursor;
+
+                    if (FreeMouseCursor)
+                    {
+						Window.SetMouseCursorVisible(true);
+					}
+                    else
+                    {
+						Window.SetMouseCursorVisible(false);
+						Mouse.SetPosition((Vector2i)WindowCenter, Window);
+					}
+
+                    break;
+            }
+        };
+
         Window.Resized += (s, e) => Shader.SetUniform("u_resolution", WindowSize);
 
         Window.SetFramerateLimit(60);
@@ -57,8 +81,11 @@ public static class Game
         CountDeltaTime();
         Window.DispatchEvents();
 
-        MouseMove.CountDifference();
-        Mouse.SetPosition((Vector2i)WindowCenter, Window);
+        if (!FreeMouseCursor)
+        {
+			MouseMove.CountDifference();
+			Mouse.SetPosition((Vector2i)WindowCenter, Window);
+		}
 
         Camera.Move();
         Camera.Rotate();
@@ -66,7 +93,7 @@ public static class Game
         Shader.SetUniform("u_cameraPosition", Camera.Position);
         Shader.SetUniform("u_cameraAngle", Camera.Angle);
 
-        Text.DisplayedString = Camera.Stats;
+        Text.DisplayedString = Camera.Stats + "\n\n FPS: " + FPS;
 
         Shader.SetUniform("u_time", TotalTime);
         FPS = (uint)(1 / DeltaTime);
